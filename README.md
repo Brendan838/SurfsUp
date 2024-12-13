@@ -28,16 +28,12 @@ Developed API routes based on the analysis:
 ## How to Run the Project
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone <https://github.com/Brendan838/SurfsUp.git>
    ```
-2. Navigate to the project folder:
-   ```bash
-   cd sqlalchemy-challenge/SurfsUp
-   ```
-3. Run the Flask application:
+2. Run the Flask application:
    ```bash
    python app.py
    ```
-4. Access the API locally at `http://127.0.0.1:5000/`.
+3. Access the API locally at `http://127.0.0.1:5000/`.
 
 
