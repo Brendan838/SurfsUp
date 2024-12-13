@@ -1,4 +1,4 @@
-# Import the dependencies.
+# Importing the dependencies.
 import numpy as np
 
 import sqlalchemy
@@ -12,30 +12,24 @@ from flask import Flask, jsonify
 #################################################
 # Database Setup
 #################################################
-
-
+#set
+# Create engine using the `hawaii.sqlite` database file
 engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 
+# Declare a Base using `automap_base()`
 Base = automap_base()
 
-Base.prepare(autoload_with=engine)
-
-# Save reference to the table
-measurement = Base.classes.measurement
-station = Base.classes.station
-# Create engine using the `hawaii.sqlite` database file
-
-# Declare a Base using `automap_base()`
-
 # Use the Base class to reflect the database tables
+# Save reference to the table
 
+Base.prepare(autoload_with=engine)
 
 # Assign the measurement class to a variable called `Measurement` and
 # the station class to a variable called `Station`
 
 
-# Create a session
-
+measurement = Base.classes.measurement
+station = Base.classes.station
 
 #################################################
 # Flask Setup
@@ -46,6 +40,8 @@ app = Flask(__name__)
 # Flask Routes
 #################################################
 
+#showing api options on root url
+
 @app.route("/")
 def welcome():
     """List all available api routes."""
@@ -54,15 +50,16 @@ def welcome():
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0/start/end"
+        f"/api/v1.0/start_date"
+        f"/api/v1.0/start_date/end_date"
 
     )
     
-
+#showing precitipation values for last full year
 
 @app.route("/api/v1.0/precipitation")
 def precipitation():
-    # Create our session (link) from Python to the DB
+   
     session = Session(engine)
     last_12 = session.query(measurement.date,measurement.prcp).filter((measurement.date >= '2016-08-23') & (measurement.date <= '2017-08-23')).all()
     data = {}
@@ -73,10 +70,11 @@ def precipitation():
 
     return jsonify(data)
 
+#showing list of stations
 
 @app.route("/api/v1.0/stations")
 def stations():
-    # Create our session (link) from Python to the DB
+    
     session = Session(engine)
     station_names = session.query(station.name).all()
     data = []
@@ -85,9 +83,11 @@ def stations():
     session.close()
     return jsonify(data)
 
+#listing temperatures observed for the most active station
+
 @app.route("/api/v1.0/tobs")
 def tobs():
-    # Create our session (link) from Python to the DB
+
     session = Session(engine)
     tobs = session.query(measurement.tobs).filter((measurement.date >= '2016-08-23') & (measurement.date <= '2017-08-23') & (measurement.station == 'USC00519281'))
     data = [t.tobs for t in tobs]
@@ -95,9 +95,27 @@ def tobs():
     return jsonify(data)
 
 
-# /api/v1.0/'2016-08-23'/'2017-08-23'
+#Dynamic Routes
+#taking in <start> and <start>/<end> dates in the URL as arguments in our declared functions, and putting them as variables inside our session.query().filter()
+#Returning a small dictionary of min, max, and average values
+
+@app.route("/api/v1.0/<start>")
+def start(start):
+
+    session = Session(engine)
+    aggs = session.query(func.min(measurement.tobs),func.max(measurement.tobs),func.avg(measurement.tobs)).filter(measurement.date >= start).all()
+    arr = [a for a in aggs[0]]
+    data = {
+        "TMIN": round(arr[0],2),
+        "TMAX": round(arr[1],2),
+        "TAVG": round(arr[2],2)
+
+    }
+    session.close()
+    return jsonify(data)
+
 @app.route("/api/v1.0/<start>/<end>")
-def dynamic(start,end):
+def start_end(start,end):
     # Create our session (link) from Python to the DB
     s = start
     e = end if end else '2017-08-23'
